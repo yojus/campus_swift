@@ -1,0 +1,109 @@
+//
+//  LoginViewController.swift
+//  Campus_App
+//
+//  Created by 杉浦陽樹 on 2022/11/18.
+//
+
+import UIKit
+import RxSwift
+import FirebaseAuth
+import PKHUD
+
+class LoginViewController: UIViewController, UITextFieldDelegate {
+    
+    private let disposeBag = DisposeBag()
+    
+    // MARK: UIViews
+    private let titleLabel = RegisterTitleLabel(text: "Login")
+    private let emailTextField = RegisterTextField(placeHolder: "email")
+    private let passwordTextField = RegisterTextField(placeHolder: "password")
+    private let loginButton = RegisterButton(text: "ログイン")
+    private let dontHaveAccountButton = UIButton(type: .system).createAboutAccountBuuton(text: "アカウントをお持ちでない方はこちら")
+    
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        
+        emailTextField.delegate = self
+        passwordTextField.delegate = self
+        
+        view.backgroundColor = .white
+        // setupGradientLayer()
+        setupLayout()
+        setupBindings()
+    }
+    
+    //画面が押されたときに発動
+    override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
+        view.endEditing(true)
+    }
+    
+    //リターンキーが押されたときに発動
+    func textFieldShouldReturn(_ textField: UITextField) -> Bool {
+        emailTextField.resignFirstResponder()
+        passwordTextField.resignFirstResponder()
+        return true
+    }
+    
+    private func setupGradientLayer() {
+        let layer = CAGradientLayer()
+        let startColor = UIColor.rgb(red: 227, green: 48, blue: 78).cgColor
+        let endColor = UIColor.rgb(red: 245, green: 208, blue: 108).cgColor
+        
+        layer.colors = [startColor, endColor]
+        layer.locations = [0.0, 1.3]
+        layer.frame = view.bounds
+        view.layer.addSublayer(layer)
+    }
+    
+    private func setupLayout() {
+        passwordTextField.isSecureTextEntry = true
+        
+        let baseStackView = UIStackView(arrangedSubviews: [emailTextField, passwordTextField, loginButton])
+        baseStackView.axis = .vertical
+        baseStackView.distribution = .fillEqually
+        baseStackView.spacing = 30
+        
+        view.addSubview(baseStackView)
+        view.addSubview(titleLabel)
+        view.addSubview(dontHaveAccountButton)
+        
+        emailTextField.anchor(height: 45)
+        baseStackView.anchor(left: view.leftAnchor, right: view.rightAnchor, centerY: view.centerYAnchor, leftPadding: 40, rightPadding: 40)
+        titleLabel.anchor(bottom: baseStackView.topAnchor, centerX: view.centerXAnchor, bottomPadding: 40)
+        dontHaveAccountButton.anchor(top: baseStackView.bottomAnchor, centerX: view.centerXAnchor, topPadding: 20)
+    }
+    
+    private func setupBindings() {
+        
+        dontHaveAccountButton.rx.tap
+            .asDriver()
+            .drive { [weak self] _ in
+                self?.navigationController?.popViewController(animated: true)
+            }
+            .disposed(by: disposeBag)
+        
+        loginButton.rx.tap
+            .asDriver()
+            .drive { [weak self] _ in
+                self?.login()
+            }
+            .disposed(by: disposeBag)
+        
+    }
+    
+    private func login() {
+        let email = emailTextField.text ?? ""
+        let password = passwordTextField.text ?? ""
+        
+        HUD.show(.progress)
+        Auth.loginWithFireAuth(email: email, password: password) { (success) in
+            HUD.hide()
+            if success {
+                self.dismiss(animated: true)
+            } else {
+            }
+        }
+    }
+    
+}
