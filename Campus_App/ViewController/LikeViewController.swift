@@ -25,7 +25,6 @@ class LikeViewController: UIViewController {
         animationView.play()
         imageView.addSubview(animationView)
     }
-    
 
     private func setupLayout() {
         view.backgroundColor = .lightGray
